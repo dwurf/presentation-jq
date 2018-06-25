@@ -1,0 +1,1081 @@
+dwurf@pluto:~/git$ mkdir jq
+dwurf@pluto:~/git$ cd jq
+dwurf@pluto:~/git/jq$ jq
+jq - commandline JSON processor [version 1.5-1-a5b5cbe]
+Usage: /snap/jq/6/usr/bin/jq [options] <jq filter> [file...]
+
+	jq is a tool for processing JSON inputs, applying the
+	given filter to its JSON text inputs and producing the
+	filter's results as JSON on standard output.
+	The simplest filter is ., which is the identity filter,
+	copying jq's input to its output unmodified (except for
+	formatting).
+	For more advanced filters see the jq(1) manpage ("man jq")
+	and/or https://stedolan.github.io/jq
+
+	Some of the options include:
+	 -c		compact instead of pretty-printed output;
+	 -n		use `null` as the single input value;
+	 -e		set the exit status code based on the output;
+	 -s		read (slurp) all inputs into an array; apply filter to it;
+	 -r		output raw strings, not JSON texts;
+	 -R		read raw strings, not JSON texts;
+	 -C		colorize JSON;
+	 -M		monochrome (don't colorize JSON);
+	 -S		sort keys of objects on output;
+	 --tab	use tabs for indentation;
+	 --arg a v	set variable $a to value <v>;
+	 --argjson a v	set variable $a to JSON value <v>;
+	 --slurpfile a f	set variable $a to an array of JSON texts read from <f>;
+	See the manpage for more options.
+dwurf@pluto:~/git/jq$ ^C
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ vi one.json
+dwurf@pluto:~/git/jq$ jq -S . one.json 
+jq: error: Could not open file one.json: Permission denied
+dwurf@pluto:~/git/jq$ ls -al
+total 12
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 20:40 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf   88 Jun 25 20:40 one.json
+dwurf@pluto:~/git/jq$ jq -S . one.json 
+jq: error: Could not open file one.json: Permission denied
+dwurf@pluto:~/git/jq$ df -h .
+Filesystem                   Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-root  915G   59G  810G   7% /
+dwurf@pluto:~/git/jq$ ls -al
+total 12
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 20:40 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf   88 Jun 25 20:40 one.json
+dwurf@pluto:~/git/jq$ cat one.json 
+{
+    "foo": 1,
+    "bar": 2,
+    "quux": {
+        "one": 1,
+        "two": 2
+    },
+}
+dwurf@pluto:~/git/jq$ which jq
+/snap/bin/jq
+dwurf@pluto:~/git/jq$ cat one.json | jq -S .
+parse error: Expected another key-value pair at line 8, column 1
+dwurf@pluto:~/git/jq$ vi one.json 
+dwurf@pluto:~/git/jq$ cat one.json | jq -S .
+{
+  "bar": 2,
+  "foo": 1,
+  "quux": {
+    "one": 1,
+    "two": 2
+  }
+}
+dwurf@pluto:~/git/jq$ vi one.json 
+dwurf@pluto:~/git/jq$ cat one.json | jq -S .
+{
+  "bar": 2,
+  "foo": 1,
+  "list": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "quux": {
+    "one": 1,
+    "two": 2
+  }
+}
+dwurf@pluto:~/git/jq$ jq -S . <( cat one.json )
+{
+  "bar": 2,
+  "foo": 1,
+  "list": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "quux": {
+    "one": 1,
+    "two": 2
+  }
+}
+dwurf@pluto:~/git/jq$ jq -S .quux <( cat one.json )
+{
+  "one": 1,
+  "two": 2
+}
+dwurf@pluto:~/git/jq$ jq -S 'to_entries' <( cat one.json )
+[
+  {
+    "key": "foo",
+    "value": 1
+  },
+  {
+    "key": "bar",
+    "value": 2
+  },
+  {
+    "key": "quux",
+    "value": {
+      "one": 1,
+      "two": 2
+    }
+  },
+  {
+    "key": "list",
+    "value": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+]
+dwurf@pluto:~/git/jq$ jq -S 'to_entries | map({ key: (.key + "__"), value })' <( cat one.json )
+[
+  {
+    "key": "foo__",
+    "value": 1
+  },
+  {
+    "key": "bar__",
+    "value": 2
+  },
+  {
+    "key": "quux__",
+    "value": {
+      "one": 1,
+      "two": 2
+    }
+  },
+  {
+    "key": "list__",
+    "value": [
+      1,
+      2,
+      3,
+      4
+    ]
+  }
+]
+dwurf@pluto:~/git/jq$ jq -S 'to_entries | map({ key: (.key + "__"), value }) | from_entries' <( cat one.json )
+{
+  "bar__": 2,
+  "foo__": 1,
+  "list__": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "quux__": {
+    "one": 1,
+    "two": 2
+  }
+}
+dwurf@pluto:~/git/jq$ vi deep.json
+dwurf@pluto:~/git/jq$ vi deep.json
+dwurf@pluto:~/git/jq$ vi filter.sh
+dwurf@pluto:~/git/jq$ chmod a+rx filter.sh 
+dwurf@pluto:~/git/jq$ ./filter.sh 
+{
+  "author": "Anonymous Coward",
+  "title": "Frist psot"
+}
+{
+  "author": "Person McPherson",
+  "title": "A well-written article"
+}
+dwurf@pluto:~/git/jq$ cat deep.json 
+{
+  "posts": [
+    {
+      "author": "anon",
+      "title": "Frist psot"
+    },
+    {
+      "author": "person1",
+      "title": "A well-written article"
+    }
+  ],
+  "realnames": {
+    "anon": "Anonymous Coward",
+    "person1": "Person McPherson"
+  }
+}
+dwurf@pluto:~/git/jq$ cat filter.sh 
+#!/usr/bin/env bash
+
+jq -S '
+  .realnames as $names
+  | .posts[]
+  | {title, author: $names[.author]}
+  ' <( cat deep.json)
+dwurf@pluto:~/git/jq$ ./filter.sh 
+{
+  "author": "Anonymous Coward",
+  "title": "Frist psot"
+}
+{
+  "author": "Person McPherson",
+  "title": "A well-written article"
+}
+dwurf@pluto:~/git/jq$ vi puppet.json
+dwurf@pluto:~/git/jq$ vi ansible.json
+dwurf@pluto:~/git/jq$ cat puppet.json 
+[
+    {
+        "certname": "meeny.internal",
+        "value": {
+            "ip": "10.0.0.1"
+        }
+    },
+    {
+        "certname": "miny.internal",
+        "value": {
+            "ip": "10.0.1.1"
+        }
+    },
+    {
+        "certname": "eeny.internal",
+        "value": {
+            "ip": "10.0.2.1"
+        }
+    },
+    {
+        "certname": "mo.internal",
+        "value": {
+            "ip": "10.0.2.1"
+        }
+    },
+]
+dwurf@pluto:~/git/jq$ cat ansible.json 
+[
+  { "hostname": "mo.internal", "owned_by": "Joe Bloggs" },
+  { "hostname": "miny.internal", "owned_by": "Fred Nurk" }
+]
+dwurf@pluto:~/git/jq$ vi combine.sh
+dwurf@pluto:~/git/jq$ chmod a+rx combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+parse error: Expected another array element at line 26, column 1
+[
+  {
+    "hostname": "mo.internal",
+    "owned_by": "Joe Bloggs"
+  },
+  {
+    "hostname": "miny.internal",
+    "owned_by": "Fred Nurk"
+  }
+]
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ vi puppet.json 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+[
+  {
+    "certname": "meeny.internal",
+    "value": {
+      "ip": "10.0.0.1"
+    }
+  },
+  {
+    "certname": "miny.internal",
+    "value": {
+      "ip": "10.0.1.1"
+    }
+  },
+  {
+    "certname": "eeny.internal",
+    "value": {
+      "ip": "10.0.2.1"
+    }
+  },
+  {
+    "certname": "mo.internal",
+    "value": {
+      "ip": "10.0.2.1"
+    }
+  }
+]
+[
+  {
+    "hostname": "mo.internal",
+    "owned_by": "Joe Bloggs"
+  },
+  {
+    "hostname": "miny.internal",
+    "owned_by": "Fred Nurk"
+  }
+]
+dwurf@pluto:~/git/jq$ cat puppet.json 
+[
+    {
+        "certname": "meeny.internal",
+        "value": {
+            "ip": "10.0.0.1"
+        }
+    },
+    {
+        "certname": "miny.internal",
+        "value": {
+            "ip": "10.0.1.1"
+        }
+    },
+    {
+        "certname": "eeny.internal",
+        "value": {
+            "ip": "10.0.2.1"
+        }
+    },
+    {
+        "certname": "mo.internal",
+        "value": {
+            "ip": "10.0.2.1"
+        }
+    }
+]
+dwurf@pluto:~/git/jq$ jq -S 'map({ host: .certname, puppet: . })' <( cat puppet.json )
+[
+  {
+    "host": "meeny.internal",
+    "puppet": {
+      "certname": "meeny.internal",
+      "value": {
+        "ip": "10.0.0.1"
+      }
+    }
+  },
+  {
+    "host": "miny.internal",
+    "puppet": {
+      "certname": "miny.internal",
+      "value": {
+        "ip": "10.0.1.1"
+      }
+    }
+  },
+  {
+    "host": "eeny.internal",
+    "puppet": {
+      "certname": "eeny.internal",
+      "value": {
+        "ip": "10.0.2.1"
+      }
+    }
+  },
+  {
+    "host": "mo.internal",
+    "puppet": {
+      "certname": "mo.internal",
+      "value": {
+        "ip": "10.0.2.1"
+      }
+    }
+  }
+]
+dwurf@pluto:~/git/jq$ jq -S 'map({ host: .certname, puppet: . })' <( cat puppet.json )^C
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ^C
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ cat ansible.json 
+[
+  { "hostname": "mo.internal", "owned_by": "Joe Bloggs" },
+  { "hostname": "miny.internal", "owned_by": "Fred Nurk" }
+]
+dwurf@pluto:~/git/jq$ jq -S 'map({ host: .hostname, ansible: { owner: .owned_by }})' <( cat ansible.json )
+[
+  {
+    "ansible": {
+      "owner": "Joe Bloggs"
+    },
+    "host": "mo.internal"
+  },
+  {
+    "ansible": {
+      "owner": "Fred Nurk"
+    },
+    "host": "miny.internal"
+  }
+]
+dwurf@pluto:~/git/jq$ !v
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+[
+  {
+    "ansible": {
+      "owner": null
+    },
+    "host": null
+  },
+  {
+    "ansible": {
+      "owner": null
+    },
+    "host": null
+  },
+  {
+    "ansible": {
+      "owner": null
+    },
+    "host": null
+  },
+  {
+    "ansible": {
+      "owner": null
+    },
+    "host": null
+  }
+]
+[
+  {
+    "host": null,
+    "puppet": {
+      "hostname": "mo.internal",
+      "owned_by": "Joe Bloggs"
+    }
+  },
+  {
+    "host": null,
+    "puppet": {
+      "hostname": "miny.internal",
+      "owned_by": "Fred Nurk"
+    }
+  }
+]
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh  | less
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ man jq
+No manual entry for jq
+See 'man 7 undocumented' for help when manual pages are not available.
+dwurf@pluto:~/git/jq$ jq --help
+jq - commandline JSON processor [version 1.5-1-a5b5cbe]
+Usage: /snap/jq/6/usr/bin/jq [options] <jq filter> [file...]
+
+	jq is a tool for processing JSON inputs, applying the
+	given filter to its JSON text inputs and producing the
+	filter's results as JSON on standard output.
+	The simplest filter is ., which is the identity filter,
+	copying jq's input to its output unmodified (except for
+	formatting).
+	For more advanced filters see the jq(1) manpage ("man jq")
+	and/or https://stedolan.github.io/jq
+
+	Some of the options include:
+	 -c		compact instead of pretty-printed output;
+	 -n		use `null` as the single input value;
+	 -e		set the exit status code based on the output;
+	 -s		read (slurp) all inputs into an array; apply filter to it;
+	 -r		output raw strings, not JSON texts;
+	 -R		read raw strings, not JSON texts;
+	 -C		colorize JSON;
+	 -M		monochrome (don't colorize JSON);
+	 -S		sort keys of objects on output;
+	 --tab	use tabs for indentation;
+	 --arg a v	set variable $a to value <v>;
+	 --argjson a v	set variable $a to JSON value <v>;
+	 --slurpfile a f	set variable $a to an array of JSON texts read from <f>;
+	See the manpage for more options.
+dwurf@pluto:~/git/jq$ jq --version
+jq-1.5-1-a5b5cbe
+dwurf@pluto:~/git/jq$ cat filter.sh 
+#!/usr/bin/env bash
+
+jq -S '
+  .realnames as $names
+  | .posts[]
+  | {title, author: $names[.author]}
+  ' <( cat deep.json)
+dwurf@pluto:~/git/jq$ cat combine.sh 
+#!/usr/bin/env bash
+
+(
+
+jq -S '
+  map({ host: .certname, puppet: . }) | .[]
+' <( cat puppet.json )
+
+jq -S '
+  map({ host: .hostname, ansible: { owner: .owned_by }}) | .[]
+' <( cat ansible.json )
+
+) \
+| jq -s '
+  group_by(.host)
+  | map(reduce .[] as $x ({}; . * $x))
+  | map(select(.ansible))
+'
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+./combine.sh: line 20: syntax error near unexpected token `do'
+./combine.sh: line 20: `while read base64 ; do '
+dwurf@pluto:~/git/jq$ !v
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+[
+"eyJob3N0IjoibWlueS5pbnRlcm5hbCIsInB1cHBldCI6eyJjZXJ0bmFtZSI6Im1pbnkuaW50ZXJuYWwiLCJ2YWx1ZSI6eyJpcCI6IjEwLjAuMS4xIn19LCJhbnNpYmxlIjp7Im93bmVyIjoiRnJlZCBOdXJrIn19",
+"eyJob3N0IjoibW8uaW50ZXJuYWwiLCJwdXBwZXQiOnsiY2VydG5hbWUiOiJtby5pbnRlcm5hbCIsInZhbHVlIjp7ImlwIjoiMTAuMC4yLjEifX0sImFuc2libGUiOnsib3duZXIiOiJKb2UgQmxvZ2dzIn19"
+]
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+[
+base64: invalid input
+
+"eyJob3N0IjoibWlueS5pbnRlcm5hbCIsInB1cHBldCI6eyJjZXJ0bmFtZSI6Im1pbnkuaW50ZXJuYWwiLCJ2YWx1ZSI6eyJpcCI6IjEwLjAuMS4xIn19LCJhbnNpYmxlIjp7Im93bmVyIjoiRnJlZCBOdXJrIn19",
+base64: invalid input
+
+"eyJob3N0IjoibW8uaW50ZXJuYWwiLCJwdXBwZXQiOnsiY2VydG5hbWUiOiJtby5pbnRlcm5hbCIsInZhbHVlIjp7ImlwIjoiMTAuMC4yLjEifX0sImFuc2libGUiOnsib3duZXIiOiJKb2UgQmxvZ2dzIn19"
+base64: invalid input
+
+]
+base64: invalid input
+
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+[
+base64: invalid input
+
+"eyJob3N0IjoibWlueS5pbnRlcm5hbCIsInB1cHBldCI6eyJjZXJ0bmFtZSI6Im1pbnkuaW50ZXJuYWwiLCJ2YWx1ZSI6eyJpcCI6IjEwLjAuMS4xIn19LCJhbnNpYmxlIjp7Im93bmVyIjoiRnJlZCBOdXJrIn19",
+base64: invalid input
+
+"eyJob3N0IjoibW8uaW50ZXJuYWwiLCJwdXBwZXQiOnsiY2VydG5hbWUiOiJtby5pbnRlcm5hbCIsInZhbHVlIjp7ImlwIjoiMTAuMC4yLjEifX0sImFuc2libGUiOnsib3duZXIiOiJKb2UgQmxvZ2dzIn19"
+base64: invalid input
+
+]
+base64: invalid input
+
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+eyJob3N0IjoibWlueS5pbnRlcm5hbCIsInB1cHBldCI6eyJjZXJ0bmFtZSI6Im1pbnkuaW50ZXJuYWwiLCJ2YWx1ZSI6eyJpcCI6IjEwLjAuMS4xIn19LCJhbnNpYmxlIjp7Im93bmVyIjoiRnJlZCBOdXJrIn19
+{
+  "ansible": {
+    "owner": "Fred Nurk"
+  },
+  "host": "miny.internal",
+  "puppet": {
+    "certname": "miny.internal",
+    "value": {
+      "ip": "10.0.1.1"
+    }
+  }
+}
+eyJob3N0IjoibW8uaW50ZXJuYWwiLCJwdXBwZXQiOnsiY2VydG5hbWUiOiJtby5pbnRlcm5hbCIsInZhbHVlIjp7ImlwIjoiMTAuMC4yLjEifX0sImFuc2libGUiOnsib3duZXIiOiJKb2UgQmxvZ2dzIn19
+{
+  "ansible": {
+    "owner": "Joe Bloggs"
+  },
+  "host": "mo.internal",
+  "puppet": {
+    "certname": "mo.internal",
+    "value": {
+      "ip": "10.0.2.1"
+    }
+  }
+}
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+eyJob3N0IjoibWlueS5pbnRlcm5hbCIsInB1cHBldCI6eyJjZXJ0bmFtZSI6Im1pbnkuaW50ZXJuYWwiLCJ2YWx1ZSI6eyJpcCI6IjEwLjAuMS4xIn19LCJhbnNpYmxlIjp7Im93bmVyIjoiRnJlZCBOdXJrIn19
+miny.internal
+eyJob3N0IjoibW8uaW50ZXJuYWwiLCJwdXBwZXQiOnsiY2VydG5hbWUiOiJtby5pbnRlcm5hbCIsInZhbHVlIjp7ImlwIjoiMTAuMC4yLjEifX0sImFuc2libGUiOnsib3duZXIiOiJKb2UgQmxvZ2dzIn19
+mo.internal
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ ./combine.sh 
+miny.internal
+mo.internal
+dwurf@pluto:~/git/jq$ vi combine.sh 
+dwurf@pluto:~/git/jq$ cat combine.sh 
+#!/usr/bin/env bash
+
+(
+
+jq -S '
+  map({ host: .certname, puppet: . }) | .[]
+' <( cat puppet.json )
+
+jq -S '
+  map({ host: .hostname, ansible: { owner: .owned_by }}) | .[]
+' <( cat ansible.json )
+
+) \
+| jq -rs '
+  group_by(.host)
+  | map(reduce .[] as $x ({}; . * $x))
+  | map(select(.ansible))
+  | map(. | @json | @base64)
+  | .[]
+' \
+| while read base64 ; do 
+    json=$(echo "$base64" | base64 --decode | jq -S .)
+    host=$(echo "$json" | jq -r .host)
+    echo "$host"
+done
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ ls -1 > a
+dwurf@pluto:~/git/jq$ ls -al > a
+dwurf@pluto:~/git/jq$ ls -al > b
+dwurf@pluto:~/git/jq$ ls -al
+total 40
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rw-r--r-- 1 dwurf dwurf  513 Jun 25 21:23 b
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ cat a
+total 32
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ cat b
+total 36
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:23 b
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ ls -al | sort -R > b
+dwurf@pluto:~/git/jq$ ls -al
+total 40
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rw-r--r-- 1 dwurf dwurf  513 Jun 25 21:24 b
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ cat a
+total 32
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ cat b
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:24 b
+-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+total 36
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+dwurf@pluto:~/git/jq$ diff -u a b
+--- a	2018-06-25 21:23:41.140347987 +1000
++++ b	2018-06-25 21:24:08.778399185 +1000
+@@ -1,10 +1,11 @@
+-total 32
+-drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+-drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+--rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:23 a
++-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+ -rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
++drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+ -rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+--rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
++drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+ -rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+--rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
++-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:24 b
++-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
++total 36
+ -rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
++-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+dwurf@pluto:~/git/jq$ diff -u <( sort a) <( sort b) 
+--- /dev/fd/63	2018-06-25 21:24:37.558944090 +1000
++++ /dev/fd/62	2018-06-25 21:24:37.558944090 +1000
+@@ -1,10 +1,11 @@
+ drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+ drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+--rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:23 a
++-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:24 b
+ -rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+ -rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+ -rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+ -rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
++-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+ -rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+ -rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-total 32
++total 36
+dwurf@pluto:~/git/jq$ diff -u <( sort a) <( sort b) ^C
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ ls -al
+total 40
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rw-r--r-- 1 dwurf dwurf  513 Jun 25 21:24 b
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ cat puppet.json 
+[
+    {
+        "certname": "meeny.internal",
+        "value": {
+            "ip": "10.0.0.1"
+        }
+    },
+    {
+        "certname": "miny.internal",
+        "value": {
+            "ip": "10.0.1.1"
+        }
+    },
+    {
+        "certname": "eeny.internal",
+        "value": {
+            "ip": "10.0.2.1"
+        }
+    },
+    {
+        "certname": "mo.internal",
+        "value": {
+            "ip": "10.0.2.1"
+        }
+    }
+]
+dwurf@pluto:~/git/jq$ jq -c . puppet.json 
+jq: error: Could not open file puppet.json: Permission denied
+dwurf@pluto:~/git/jq$ jq -c . <( cat puppet.json )
+[{"certname":"meeny.internal","value":{"ip":"10.0.0.1"}},{"certname":"miny.internal","value":{"ip":"10.0.1.1"}},{"certname":"eeny.internal","value":{"ip":"10.0.2.1"}},{"certname":"mo.internal","value":{"ip":"10.0.2.1"}}]
+dwurf@pluto:~/git/jq$ jq -c . <( cat puppet.json ) > canonical.json
+dwurf@pluto:~/git/jq$ ls -al
+total 44
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:25 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf  468 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rw-r--r-- 1 dwurf dwurf  513 Jun 25 21:24 b
+-rw-r--r-- 1 dwurf dwurf  221 Jun 25 21:25 canonical.json
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json
+dwurf@pluto:~/git/jq$ diff -u puppet.json <( jq -S <( cat canonical.json ))
+jq: error: syntax error, unexpected '/', expecting $end (Unix shell quoting issues?) at <top-level>, line 1:
+/dev/fd/63
+jq: 1 compile error
+--- puppet.json	2018-06-25 20:57:52.249403258 +1000
++++ /dev/fd/63	2018-06-25 21:26:15.919912664 +1000
+@@ -1,26 +0,0 @@
+-[
+-    {
+-        "certname": "meeny.internal",
+-        "value": {
+-            "ip": "10.0.0.1"
+-        }
+-    },
+-    {
+-        "certname": "miny.internal",
+-        "value": {
+-            "ip": "10.0.1.1"
+-        }
+-    },
+-    {
+-        "certname": "eeny.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    },
+-    {
+-        "certname": "mo.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    }
+-]
+dwurf@pluto:~/git/jq$ diff -u puppet.json <( jq -S . <( cat canonical.json ))
+--- puppet.json	2018-06-25 20:57:52.249403258 +1000
++++ /dev/fd/63	2018-06-25 21:26:42.919873893 +1000
+@@ -1,26 +1,26 @@
+ [
+-    {
+-        "certname": "meeny.internal",
+-        "value": {
+-            "ip": "10.0.0.1"
+-        }
+-    },
+-    {
+-        "certname": "miny.internal",
+-        "value": {
+-            "ip": "10.0.1.1"
+-        }
+-    },
+-    {
+-        "certname": "eeny.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    },
+-    {
+-        "certname": "mo.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
++  {
++    "certname": "meeny.internal",
++    "value": {
++      "ip": "10.0.0.1"
+     }
++  },
++  {
++    "certname": "miny.internal",
++    "value": {
++      "ip": "10.0.1.1"
++    }
++  },
++  {
++    "certname": "eeny.internal",
++    "value": {
++      "ip": "10.0.2.1"
++    }
++  },
++  {
++    "certname": "mo.internal",
++    "value": {
++      "ip": "10.0.2.1"
++    }
++  }
+ ]
+dwurf@pluto:~/git/jq$ diff -u <( jq -S . <( cat puppet.json ) ) <( jq -S . <( cat canonical.json ))
+dwurf@pluto:~/git/jq$ diff -u <( jq -S . <( cat puppet.json ) ) <( jq -S . <( cat canonical.json )) && echo OK
+OK
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ diff -u puppet.json <( jq -S . <( cat canonical.json ))
+--- puppet.json	2018-06-25 20:57:52.249403258 +1000
++++ /dev/fd/63	2018-06-25 21:27:50.839923206 +1000
+@@ -1,26 +1,26 @@
+ [
+-    {
+-        "certname": "meeny.internal",
+-        "value": {
+-            "ip": "10.0.0.1"
+-        }
+-    },
+-    {
+-        "certname": "miny.internal",
+-        "value": {
+-            "ip": "10.0.1.1"
+-        }
+-    },
+-    {
+-        "certname": "eeny.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    },
+-    {
+-        "certname": "mo.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
++  {
++    "certname": "meeny.internal",
++    "value": {
++      "ip": "10.0.0.1"
+     }
++  },
++  {
++    "certname": "miny.internal",
++    "value": {
++      "ip": "10.0.1.1"
++    }
++  },
++  {
++    "certname": "eeny.internal",
++    "value": {
++      "ip": "10.0.2.1"
++    }
++  },
++  {
++    "certname": "mo.internal",
++    "value": {
++      "ip": "10.0.2.1"
++    }
++  }
+ ]
+dwurf@pluto:~/git/jq$ diff -u puppet.json <( jq -S . ./canonical.json )
+jq: error: Could not open file ./canonical.json: Permission denied
+--- puppet.json	2018-06-25 20:57:52.249403258 +1000
++++ /dev/fd/63	2018-06-25 21:28:15.995979655 +1000
+@@ -1,26 +0,0 @@
+-[
+-    {
+-        "certname": "meeny.internal",
+-        "value": {
+-            "ip": "10.0.0.1"
+-        }
+-    },
+-    {
+-        "certname": "miny.internal",
+-        "value": {
+-            "ip": "10.0.1.1"
+-        }
+-    },
+-    {
+-        "certname": "eeny.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    },
+-    {
+-        "certname": "mo.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    }
+-]
+dwurf@pluto:~/git/jq$ diff -u puppet.json <( jq -S . < ./canonical.json )
+--- puppet.json	2018-06-25 20:57:52.249403258 +1000
++++ /dev/fd/63	2018-06-25 21:28:22.672697862 +1000
+@@ -1,26 +1,26 @@
+ [
+-    {
+-        "certname": "meeny.internal",
+-        "value": {
+-            "ip": "10.0.0.1"
+-        }
+-    },
+-    {
+-        "certname": "miny.internal",
+-        "value": {
+-            "ip": "10.0.1.1"
+-        }
+-    },
+-    {
+-        "certname": "eeny.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
+-    },
+-    {
+-        "certname": "mo.internal",
+-        "value": {
+-            "ip": "10.0.2.1"
+-        }
++  {
++    "certname": "meeny.internal",
++    "value": {
++      "ip": "10.0.0.1"
+     }
++  },
++  {
++    "certname": "miny.internal",
++    "value": {
++      "ip": "10.0.1.1"
++    }
++  },
++  {
++    "certname": "eeny.internal",
++    "value": {
++      "ip": "10.0.2.1"
++    }
++  },
++  {
++    "certname": "mo.internal",
++    "value": {
++      "ip": "10.0.2.1"
++    }
++  }
+ ]
+dwurf@pluto:~/git/jq$ diff -u <( jq -S .  < ./puppet.json ) <( jq -S . < ./canonical.json )
+dwurf@pluto:~/git/jq$ cat combine.sh 
+#!/usr/bin/env bash
+
+(
+
+jq -S '
+  map({ host: .certname, puppet: . }) | .[]
+' <( cat puppet.json )
+
+jq -S '
+  map({ host: .hostname, ansible: { owner: .owned_by }}) | .[]
+' <( cat ansible.json )
+
+) \
+| jq -rs '
+  group_by(.host)
+  | map(reduce .[] as $x ({}; . * $x))
+  | map(select(.ansible))
+  | map(. | @json | @base64)
+  | .[]
+' \
+| while read base64 ; do 
+    json=$(echo "$base64" | base64 --decode | jq -S .)
+    host=$(echo "$json" | jq -r .host)
+    echo "$host"
+done
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ 
+dwurf@pluto:~/git/jq$ ls
+a  ansible.json  b  canonical.json  combine.sh  deep.json  filter.sh  one.json  puppet.json
+dwurf@pluto:~/git/jq$ 

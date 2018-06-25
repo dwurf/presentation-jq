@@ -1,0 +1,4 @@
+[
+  { "hostname": "mo.internal", "owned_by": "Joe Bloggs" },
+  { "hostname": "miny.internal", "owned_by": "Fred Nurk" }
+]

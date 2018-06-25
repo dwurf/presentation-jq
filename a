@@ -1,0 +1,10 @@
+total 32
+drwxr-xr-x 2 dwurf dwurf 4096 Jun 25 21:23 .
+drwxr-xr-x 5 dwurf dwurf 4096 Jun 25 20:39 ..
+-rw-r--r-- 1 dwurf dwurf    0 Jun 25 21:23 a
+-rw-r--r-- 1 dwurf dwurf  122 Jun 25 20:54 ansible.json
+-rwxr-xr-x 1 dwurf dwurf  477 Jun 25 21:15 combine.sh
+-rw-r--r-- 1 dwurf dwurf  253 Jun 25 20:48 deep.json
+-rwxr-xr-x 1 dwurf dwurf  124 Jun 25 20:49 filter.sh
+-rw-r--r-- 1 dwurf dwurf  127 Jun 25 20:42 one.json
+-rw-r--r-- 1 dwurf dwurf  434 Jun 25 20:57 puppet.json

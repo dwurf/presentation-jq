@@ -1,0 +1,16 @@
+{
+  "posts": [
+    {
+      "author": "anon",
+      "title": "Frist psot"
+    },
+    {
+      "author": "person1",
+      "title": "A well-written article"
+    }
+  ],
+  "realnames": {
+    "anon": "Anonymous Coward",
+    "person1": "Person McPherson"
+  }
+}
